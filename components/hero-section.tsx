@@ -38,7 +38,7 @@ export default function HeroSection() {
 
       {/* Background Image Placeholder */}
       <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-black">
-        <div className="w-full h-full bg-[url('/placeholder.svg?height=1080&width=1920')] bg-cover bg-center opacity-20"></div>
+      <video autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover opacity-20 z-0"><source src="/Home_video.mp4" type="video/mp4" /></video>
       </div>
 
       <div className="container mx-auto px-4 z-20 relative">
@@ -64,7 +64,7 @@ export default function HeroSection() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="border-white text-white hover:bg-white hover:text-black px-8 py-3 text-lg group"
+                    className="border-white text-black hover:bg-white hover:text-black hover:bg-red-500 hover:text-white px-8 py-3 text-lg group transition duration-300 ease-in-out"
                 >
                   <Play className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
                   Watch Demo
@@ -76,9 +76,9 @@ export default function HeroSection() {
           <div className="lg:w-1/2 flex justify-center">
             <div className="relative">
               {/* Phone Mockup */}
-              <div className="w-80 h-96 bg-gradient-to-br from-red-500/20 to-orange-500/20 rounded-3xl flex items-center justify-center backdrop-blur-sm border border-red-500/30 relative">
+              <div className="w-[360px] h-[690px] bg-gradient-to-br from-red-500/20 to-orange-500/20 rounded-3xl flex items-center justify-center backdrop-blur-sm border border-red-500/30 relative">
                 {/* Phone Screen */}
-                <div className="w-72 h-88 bg-black rounded-2xl border-4 border-gray-800 overflow-hidden">
+                <div className="w-[340px] h-[660px] bg-black rounded-2xl border-4 border-gray-800 overflow-hidden">
                   <div className="w-full h-full bg-[url('/placeholder.svg?height=400&width=300')] bg-cover bg-center"></div>
                 </div>
 
@@ -99,6 +99,7 @@ export default function HeroSection() {
         <div className="flex justify-center mt-12 space-x-3">
           {slides.map((_, index) => (
             <button
+              title="Slide Navigation"
               key={index}
               onClick={() => setCurrentSlide(index)}
               className={`w-3 h-3 rounded-full transition-all duration-300 ${

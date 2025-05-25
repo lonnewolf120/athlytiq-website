@@ -66,16 +66,13 @@ export default function Header() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           <div className="flex items-center space-x-2">
-            <div className="bg-gradient-to-r from-red-500 to-orange-500 p-2 rounded-lg">
-              <Activity className="h-6 w-6 text-white" />
-            </div>
+            <img src="/logo.png" alt="ATHlytiq Logo" className="h-16 w-16" />
             <div className="text-white font-bold text-xl">
-              <span className="bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent">
-                FitTracker
+              <span className="bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent font-bold">
+                ATHlytiq
               </span>
             </div>
           </div>
-
           <nav className="hidden md:flex items-center space-x-8">
             {navItems.map((item) => (
               <button

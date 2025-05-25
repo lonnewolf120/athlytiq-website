@@ -80,7 +80,7 @@ export default function ServicesSection() {
           </div>
 
           {/* Service Content */}
-          <div className="lg:w-2/3">
+            <div className="lg:w-2/3 py-7">
             <div className="bg-black/20 backdrop-blur-sm rounded-2xl border border-red-500/20 overflow-hidden">
               {/* Service Image */}
               <div className="h-64 lg:h-80 bg-gradient-to-br from-red-500/20 to-orange-500/20 flex items-center justify-center">
