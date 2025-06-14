@@ -1,7 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-
-// This is a mock API route for demonstration
-// Replace with your actual registration logic
+import { supabase } from "@/lib/supabaseClient"
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,57 +20,66 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "Password must be at least 8 characters long" }, { status: 400 })
     }
 
-    // Mock registration - Replace with your actual registration logic
-    // This would typically involve:
-    // 1. Checking if email already exists
-    // 2. Hashing the password
-    // 3. Saving user to database
-    // 4. Sending welcome email
-    // 5. Generating JWT tokens
-
-    // Simulate checking if email already exists
-    if (email === "existing@fittracker.com") {
-      return NextResponse.json({ message: "An account with this email already exists" }, { status: 409 })
-    }
-
-    // Mock successful registration
-    const user = {
-      id: Date.now().toString(), // In real app, this would be from database
-      firstName,
-      lastName,
+    // Supabase registration
+    const { data, error: signUpError } = await supabase.auth.signUp({
       email,
-      dateOfBirth,
-      createdAt: new Date().toISOString(),
-    }
-
-    // In a real app, you'd:
-    // 1. Hash the password before storing
-    // 2. Save to database
-    // 3. Send welcome email
-    // 4. Set authentication cookies
-
-    const response = NextResponse.json(
-      {
-        message: "Account created successfully",
-        user: {
-          id: user.id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
+      password,
+      options: {
+        data: {
+          first_name: firstName,
+          last_name: lastName,
+          date_of_birth: dateOfBirth,
         },
       },
-      { status: 201 },
-    )
-
-    // Set authentication cookie (example)
-    response.cookies.set("auth-token", "mock-jwt-token", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60, // 7 days
     })
 
-    return response
+    if (signUpError) {
+      console.error("Supabase sign up error:", signUpError.message)
+      return NextResponse.json({ message: signUpError.message }, { status: 400 })
+    }
+
+    // If user is created but not confirmed (e.g., email verification is on)
+    if (data.user && !data.session) {
+      return NextResponse.json(
+        { message: "Account created. Please check your email to verify your account." },
+        { status: 200 },
+      )
+    }
+
+    // If user is created and session is active (e.g., email verification is off)
+    if (data.user && data.session) {
+      // Optionally, insert additional profile data into a 'profiles' table
+      const { error: profileError } = await supabase.from("profiles").insert([
+        {
+          id: data.user.id,
+          first_name: firstName,
+          last_name: lastName,
+          email: email,
+          date_of_birth: dateOfBirth,
+        },
+      ])
+
+      if (profileError) {
+        console.error("Error inserting profile data:", profileError.message)
+        // Decide how to handle this: rollback user creation or log and proceed
+        return NextResponse.json({ message: "Account created, but profile data could not be saved." }, { status: 500 })
+      }
+
+      return NextResponse.json(
+        {
+          message: "Account created successfully",
+          user: {
+            id: data.user.id,
+            email: data.user.email,
+            firstName: firstName,
+            lastName: lastName,
+          },
+        },
+        { status: 201 },
+      )
+    }
+
+    return NextResponse.json({ message: "An unexpected error occurred during sign up." }, { status: 500 })
   } catch (error) {
     console.error("Sign up error:", error)
     return NextResponse.json({ message: "Internal server error" }, { status: 500 })

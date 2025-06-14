@@ -1,7 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-
-// This is a mock API route for demonstration
-// Replace with your actual authentication logic
+import { supabase } from "@/lib/supabaseClient"
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,43 +10,64 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "Email and password are required" }, { status: 400 })
     }
 
-    // Mock authentication - Replace with your actual auth logic
-    // This would typically involve:
-    // 1. Checking credentials against your database
-    // 2. Hashing password comparison
-    // 3. Generating JWT tokens
-    // 4. Setting secure cookies
+    // Supabase authentication
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
 
-    if (email === "demo@fittracker.com" && password === "password123") {
-      // Mock successful login
-      const user = {
-        id: "1",
-        email: email,
-        firstName: "Demo",
-        lastName: "User",
-      }
+    if (signInError) {
+      console.error("Supabase sign in error:", signInError.message)
+      return NextResponse.json({ message: signInError.message }, { status: 401 })
+    }
 
-      // In a real app, you'd set secure HTTP-only cookies here
-      const response = NextResponse.json(
-        {
-          message: "Login successful",
-          user: user,
-        },
-        { status: 200 },
-      )
-
-      // Set authentication cookie (example)
-      response.cookies.set("auth-token", "mock-jwt-token", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60, // 7 days
-      })
-
-      return response
-    } else {
+    if (!data.user || !data.session) {
       return NextResponse.json({ message: "Invalid email or password" }, { status: 401 })
     }
+
+    // In a real app, you'd set secure HTTP-only cookies here
+    // Supabase's auth helpers typically handle cookie setting automatically in Next.js environments
+    // For server-side routes, you might need to manually set cookies if not using auth helpers directly
+    // For this example, we'll assume Supabase's default behavior or rely on client-side session management.
+
+    // Fetch user profile data if needed (e.g., first name, last name)
+    const { data: profileData, error: profileError } = await supabase
+      .from("profiles")
+      .select("first_name, last_name")
+      .eq("id", data.user.id)
+      .single()
+
+    if (profileError) {
+      console.error("Error fetching profile data:", profileError.message)
+      // Decide how to handle this: proceed without profile data or return an error
+    }
+
+    const user = {
+      id: data.user.id,
+      email: data.user.email,
+      firstName: profileData?.first_name || null,
+      lastName: profileData?.last_name || null,
+    }
+
+    const response = NextResponse.json(
+      {
+        message: "Login successful",
+        user: user,
+      },
+      { status: 200 },
+    )
+
+    // Supabase auth helpers usually handle setting the session cookie.
+    // If you need to manually set a cookie for other purposes, you can do so here.
+    // For example, if you were using a custom JWT:
+    // response.cookies.set("auth-token", data.session.access_token, {
+    //   httpOnly: true,
+    //   secure: process.env.NODE_ENV === "production",
+    //   sameSite: "strict",
+    //   maxAge: data.session.expires_in,
+    // });
+
+    return response
   } catch (error) {
     console.error("Sign in error:", error)
     return NextResponse.json({ message: "Internal server error" }, { status: 500 })
